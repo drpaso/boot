@@ -10841,6 +10841,73 @@ body {
   padding: 8rem 0;
 }
 
+/* Services Section Enhancements */
+#services {
+  background-color: #f8f9fa;
+}
+
+#services .service-card {
+  padding: 2rem;
+  margin-bottom: 2rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+#services .service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+}
+
+#services .service-icon {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4623a;
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  color: white;
+  font-size: 2rem;
+  transition: all 0.3s ease;
+}
+
+#services .service-card:hover .service-icon {
+  transform: scale(1.1);
+  background: #e04b1a;
+}
+
+#services .service-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  color: #212529;
+}
+
+#services .service-description {
+  color: #6c757d;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+#services h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+  color: #212529;
+}
+
+#services hr.divider {
+  margin-bottom: 4rem;
+}
+
 .text-white-75 {
   color: rgba(255, 255, 255, 0.75) !important;
 }
