@@ -100,6 +100,34 @@
                 background: #f0f0f0;
                 color: #333;
             }
+            .speech-bubble {
+                position: absolute;
+                bottom: 90px;
+                right: 1px;
+                background: #f4623a;
+                color: white;
+                padding: 10px 15px;
+                border-radius: 20px;
+                font-size: 14px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+                animation: fadeIn 0.5s ease-in;
+                max-width: 200px;
+            }
+            .speech-bubble:after {
+                content: '';
+                position: absolute;
+                bottom: -8px;
+                right: 20px;
+                width: 15px;
+                height: 15px;
+                background: #f4623a;
+                transform: rotate(45deg);
+                box-shadow: 2px 2px 2px rgba(0,0,0,0.1);
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
         </style>
     </head>
     <body id="page-top">
@@ -277,6 +305,7 @@
         </footer>
         <!-- Chatbot -->
         <div class="chatbot-container">
+            <div class="speech-bubble">¿Necesitas información?</div>
             <div class="chatbot-window" id="chatbotWindow">
                 <div class="chatbot-header">
                     <span>Chat Assistant</span>
