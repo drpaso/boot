@@ -1,35 +1,21 @@
-const express = require('express');
-const cors = require('cors');
 const { OpenAI } = require('openai');
-const fs = require('fs').promises;
-const path = require('path');
-require('dotenv').config();
 
-const app = express();
-const port = 3000;
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-
-// Initialize OpenAI client
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
-// Preloaded file ID for OpenAI
 const PRELOADED_FILE_ID = 'file-F9Y8YGjHXGKDtBVF3efdR7';
 
-// Path to the responses file
+module.exports = async (req, res) => {
+    if (req.method !== 'POST') {
+        res.status(405).json({ error: 'Method not allowed' });
+        return;
+    }
 
-
-// Chat endpoint
-app.post('/api/chat', async (req, res) => {
     try {
         const { message } = req.body;
         const lowerMessage = message.toLowerCase();
 
-        // Check if it's a file analysis request
         if (lowerMessage.includes('analyze file') || lowerMessage.includes('check file')) {
             const completion = await openai.chat.completions.create({
                 model: "gpt-4o-mini",
@@ -47,9 +33,8 @@ app.post('/api/chat', async (req, res) => {
                 max_tokens: 500
             });
 
-            res.json({ response: completion.choices[0].message.content });
+            res.status(200).json({ response: completion.choices[0].message.content });
         } else {
-            // Regular chat message
             const completion = await openai.chat.completions.create({
                 model: "gpt-4o-mini",
                 messages: [
@@ -66,17 +51,10 @@ app.post('/api/chat', async (req, res) => {
                 max_tokens: 150
             });
 
-            res.json({ response: completion.choices[0].message.content });
+            res.status(200).json({ response: completion.choices[0].message.content });
         }
     } catch (error) {
         console.error('Error:', error);
         res.status(500).json({ error: 'Error processing your request' });
     }
-});
-
-// Serve static files
-app.use(express.static('.'));
-
-app.listen(port, () => {
-    console.log(`Server running at http://localhost:${port}`);
-}); 
+};

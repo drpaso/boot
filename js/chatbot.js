@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3000/api/chat';
+const API_URL = '/api/chat';
 
 function toggleChat() {
     const chatWindow = document.getElementById('chatbotWindow');
