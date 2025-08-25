@@ -291,56 +291,8 @@
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
         <!-- SimpleLightbox plugin JS-->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/SimpleLightbox/2.1.0/simpleLightbox.min.js"></script>
-        <!-- QR Code library -->
-        <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-        <!-- Fallback QR Code library -->
-        <script>
-            // Check if QRCode library loaded, if not try fallback
-            if (typeof QRCode === 'undefined') {
-                console.log('Primary QRCode CDN failed, trying fallback...');
-                const script = document.createElement('script');
-                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';
-                script.onload = function() {
-                    console.log('Fallback QRCode library loaded successfully');
-                };
-                script.onerror = function() {
-                    console.error('Both QRCode CDNs failed to load');
-                    // Add a global flag to indicate library loading failure
-                    window.QRCodeLoadFailed = true;
-                };
-                document.head.appendChild(script);
-            }
-            
-            // Additional check after 2 seconds
-            setTimeout(() => {
-                if (typeof QRCode === 'undefined') {
-                    console.warn('QRCode library still not loaded after 2 seconds');
-                    window.QRCodeLoadFailed = true;
-                } else {
-                    console.log('QRCode library loaded successfully');
-                    window.QRCodeLoadFailed = false;
-                }
-            }, 2000);
-            
-            // Additional check after 5 seconds
-            setTimeout(() => {
-                if (typeof QRCode === 'undefined') {
-                    console.error('QRCode library failed to load after 5 seconds - trying manual load');
-                    // Try to load manually
-                    const script = document.createElement('script');
-                    script.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
-                    script.onload = function() {
-                        console.log('Manual QRCode library load successful');
-                        window.QRCodeLoadFailed = false;
-                    };
-                    script.onerror = function() {
-                        console.error('Manual QRCode library load also failed');
-                        window.QRCodeLoadFailed = true;
-                    };
-                    document.head.appendChild(script);
-                }
-            }, 5000);
-        </script>
+        <!-- Local QR Code library (avoids CDN issues on Vercel) -->
+        <script src="js/qrcode-local.js"></script>
         <!-- Core theme JS-->
         <script src="js/scripts.js"></script>
         <!-- Chatbot JS -->
