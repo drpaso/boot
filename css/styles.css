@@ -11130,4 +11130,66 @@ header.masthead h1, header.masthead .h1 {
         margin-bottom: 0.5rem;
         width: 100%;
     }
+    
+    #qrModal .modal-body {
+        padding: 1.5rem;
+    }
+    
+    #qrCodeContainer {
+        min-height: 240px;
+    }
+}
+
+/* QR Code Modal Styling */
+#qrModal .modal-content {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+#qrModal .modal-header {
+    background: linear-gradient(135deg, var(--bs-primary) 0%, #0056b3 100%);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border-bottom: none;
+}
+
+#qrModal .modal-title {
+    font-weight: 700;
+    font-size: 1.25rem;
+}
+
+#qrModal .btn-close {
+    filter: invert(1);
+}
+
+#qrModal .modal-body {
+    padding: 2rem;
+}
+
+#qrCodeContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 280px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 2px dashed #dee2e6;
+}
+
+#qrCodeContainer canvas {
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+#qrModal .btn {
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+#qrModal .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }

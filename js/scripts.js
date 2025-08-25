@@ -111,3 +111,80 @@ function addToContacts() {
         downloadVCard();
     }
 }
+
+// QR Code functionality
+function showQRCode() {
+    const vcardData = `BEGIN:VCARD
+VERSION:3.0
+FN:Lunova Soluciones
+ORG:Lunova Soluciones
+TEL:+1 915 328 2762
+EMAIL:info@lunovasoluciones.com
+URL:lunovasoluciones.com
+TITLE:Empresa de Servicios IT
+NOTE:Especialistas en servicios de IT para PYMES. Soporte técnico, ciberseguridad, servicios cloud y gestión de infraestructura IT 24/7.
+ADR:;;El Paso;TX;;;USA
+END:VCARD`;
+
+    const qrContainer = document.getElementById('qrCodeContainer');
+    qrContainer.innerHTML = ''; // Clear previous QR code
+    
+    // Generate QR code
+    QRCode.toCanvas(qrContainer, vcardData, {
+        width: 256,
+        height: 256,
+        margin: 2,
+        color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+        }
+    }, function (error) {
+        if (error) {
+            console.error('Error generating QR code:', error);
+            qrContainer.innerHTML = '<p class="text-danger">Error generando el código QR</p>';
+        }
+    });
+    
+    // Show the modal
+    const qrModal = new bootstrap.Modal(document.getElementById('qrModal'));
+    qrModal.show();
+}
+
+function downloadQRCode() {
+    const vcardData = `BEGIN:VCARD
+VERSION:3.0
+FN:Lunova Soluciones
+ORG:Lunova Soluciones
+TEL:+1 915 328 2762
+EMAIL:info@lunovasoluciones.com
+URL:lunovasoluciones.com
+TITLE:Empresa de Servicios IT
+NOTE:Especialistas en servicios de IT para PYMES. Soporte técnico, ciberseguridad, servicios cloud y gestión de infraestructura IT 24/7.
+ADR:;;El Paso;TX;;;USA
+END:VCARD`;
+
+    // Generate QR code as data URL
+    QRCode.toDataURL(vcardData, {
+        width: 512,
+        height: 512,
+        margin: 2,
+        color: {
+            dark: '#000000',
+            light: '#FFFFFF'
+        }
+    }, function (error, url) {
+        if (error) {
+            console.error('Error generating QR code:', error);
+            alert('Error generando el código QR');
+            return;
+        }
+        
+        // Create download link
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'lunova-soluciones-qr.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    });
+}
