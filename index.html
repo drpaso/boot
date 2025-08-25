@@ -245,6 +245,9 @@
                             <button class="btn btn-primary" onclick="downloadQRCode()">
                                 <i class="bi-download me-2"></i>Descargar QR Code
                             </button>
+                            <button class="btn btn-outline-secondary" onclick="retryQRCode()">
+                                <i class="bi-arrow-clockwise me-2"></i>Reintentar
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -281,6 +284,22 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/SimpleLightbox/2.1.0/simpleLightbox.min.js"></script>
         <!-- QR Code library -->
         <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+        <!-- Fallback QR Code library -->
+        <script>
+            // Check if QRCode library loaded, if not try fallback
+            if (typeof QRCode === 'undefined') {
+                console.log('Primary QRCode CDN failed, trying fallback...');
+                const script = document.createElement('script');
+                script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';
+                script.onload = function() {
+                    console.log('Fallback QRCode library loaded successfully');
+                };
+                script.onerror = function() {
+                    console.error('Both QRCode CDNs failed to load');
+                };
+                document.head.appendChild(script);
+            }
+        </script>
         <!-- Core theme JS-->
         <script src="js/scripts.js"></script>
         <!-- Chatbot JS -->
