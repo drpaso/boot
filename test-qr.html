@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>QR Code Test Page</h1>
+        <p>This page tests the QR code functionality to help debug Vercel deployment issues.</p>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h3>Test Buttons</h3>
+                <button class="btn btn-primary me-2" onclick="testBasic()">Test Basic</button>
+                <button class="btn btn-success me-2" onclick="testQR()">Test QR</button>
+                <button class="btn btn-warning" onclick="testModal()">Test Modal</button>
+            </div>
+            
+            <div class="col-md-6">
+                <h3>Console Output</h3>
+                <div id="console-output" class="bg-light p-3" style="height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px;"></div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h3>QR Code Container</h3>
+            <div id="qrCodeContainer" class="border p-3 text-center" style="min-height: 200px;">
+                <p class="text-muted">QR Code will appear here</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div class="modal fade" id="qrModal" tabindex="-1" aria-labelledby="qrModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="qrModalLabel">QR Code Test</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <p>QR Code should appear below:</p>
+                    <div id="modalQRContainer"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    
+    <script>
+        // Console logging function
+        function log(message) {
+            const consoleOutput = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            consoleOutput.innerHTML += `[${timestamp}] ${message}<br>`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+            console.log(message);
+        }
+
+        // Test basic functionality
+        function testBasic() {
+            log('Test Basic button clicked');
+            log('Document ready state: ' + document.readyState);
+            log('Window loaded: ' + (window.onload !== null));
+        }
+
+        // Test QR code generation
+        function testQR() {
+            log('Test QR button clicked');
+            
+            if (typeof QRCode === 'undefined') {
+                log('ERROR: QRCode library not available');
+                return;
+            }
+            
+            log('QRCode library available');
+            
+            const container = document.getElementById('qrCodeContainer');
+            container.innerHTML = '<div class="spinner-border text-primary"></div><p>Generating QR...</p>';
+            
+            try {
+                QRCode.toCanvas(container, 'Test QR Code Data', {
+                    width: 200,
+                    height: 200
+                }, function(error) {
+                    if (error) {
+                        log('ERROR generating QR: ' + error.message);
+                        container.innerHTML = '<p class="text-danger">Error: ' + error.message + '</p>';
+                    } else {
+                        log('QR code generated successfully');
+                    }
+                });
+            } catch (e) {
+                log('EXCEPTION generating QR: ' + e.message);
+                container.innerHTML = '<p class="text-danger">Exception: ' + e.message + '</p>';
+            }
+        }
+
+        // Test modal
+        function testModal() {
+            log('Test Modal button clicked');
+            
+            if (typeof bootstrap === 'undefined') {
+                log('ERROR: Bootstrap not available');
+                return;
+            }
+            
+            log('Bootstrap available');
+            
+            try {
+                const modal = new bootstrap.Modal(document.getElementById('qrModal'));
+                modal.show();
+                log('Modal shown successfully');
+            } catch (e) {
+                log('ERROR showing modal: ' + e.message);
+            }
+        }
+
+        // Page load logging
+        document.addEventListener('DOMContentLoaded', function() {
+            log('DOM Content Loaded');
+            log('QRCode library: ' + (typeof QRCode !== 'undefined' ? 'Available' : 'Not Available'));
+            log('Bootstrap: ' + (typeof bootstrap !== 'undefined' ? 'Available' : 'Not Available'));
+        });
+
+        window.addEventListener('load', function() {
+            log('Window Loaded');
+        });
+    </script>
+</body>
+</html>
