@@ -251,6 +251,9 @@
                             <button class="btn btn-outline-secondary" onclick="retryQRCode()">
                                 <i class="bi-arrow-clockwise me-2"></i>Reintentar
                             </button>
+                            <button class="btn btn-warning" onclick="loadQRCodeLibraryManually(() => retryQRCode())">
+                                <i class="bi-download me-2"></i>Cargar Librería
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -299,9 +302,22 @@
                 };
                 script.onerror = function() {
                     console.error('Both QRCode CDNs failed to load');
+                    // Add a global flag to indicate library loading failure
+                    window.QRCodeLoadFailed = true;
                 };
                 document.head.appendChild(script);
             }
+            
+            // Additional check after 2 seconds
+            setTimeout(() => {
+                if (typeof QRCode === 'undefined') {
+                    console.warn('QRCode library still not loaded after 2 seconds');
+                    window.QRCodeLoadFailed = true;
+                } else {
+                    console.log('QRCode library loaded successfully');
+                    window.QRCodeLoadFailed = false;
+                }
+            }, 2000);
         </script>
         <!-- Core theme JS-->
         <script src="js/scripts.js"></script>

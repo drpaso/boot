@@ -117,6 +117,7 @@ function showQRCode() {
     console.log('showQRCode function called');
     console.log('QRCode library available:', typeof QRCode !== 'undefined');
     console.log('Bootstrap Modal available:', typeof bootstrap !== 'undefined');
+    console.log('QRCode load failed flag:', window.QRCodeLoadFailed);
     
     const qrContainer = document.getElementById('qrCodeContainer');
     if (!qrContainer) {
@@ -127,6 +128,30 @@ function showQRCode() {
 
     // Check if QRCode library is available
     if (typeof QRCode === 'undefined') {
+        // If we know the library failed to load, don't wait
+        if (window.QRCodeLoadFailed) {
+            console.log('QRCode library known to have failed, attempting manual load...');
+            qrContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-2">Cargando librería QR manualmente...</p></div>';
+            
+            loadQRCodeLibraryManually((success) => {
+                if (success) {
+                    generateAndShowQRCode();
+                } else {
+                    qrContainer.innerHTML = '<p class="text-danger">Error: No se pudo cargar la librería QR Code. Por favor, recarga la página.</p>';
+                    alert('Error: No se pudo cargar la librería QR Code. Por favor, recarga la página.');
+                    
+                    // Show modal anyway with error message
+                    try {
+                        const qrModal = new bootstrap.Modal(document.getElementById('qrModal'));
+                        qrModal.show();
+                    } catch (modalError) {
+                        console.error('Error showing modal:', modalError);
+                    }
+                }
+            });
+            return;
+        }
+        
         console.log('QRCode library not loaded, waiting for it...');
         qrContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-2">Cargando librería QR...</p></div>';
         
@@ -137,6 +162,14 @@ function showQRCode() {
             } else {
                 qrContainer.innerHTML = '<p class="text-danger">Error: No se pudo cargar la librería QR Code. Por favor, recarga la página.</p>';
                 alert('Error: No se pudo cargar la librería QR Code. Por favor, recarga la página.');
+                
+                // Show modal anyway with error message
+                try {
+                    const qrModal = new bootstrap.Modal(document.getElementById('qrModal'));
+                    qrModal.show();
+                } catch (modalError) {
+                    console.error('Error showing modal:', modalError);
+                }
             }
         });
         return;
@@ -276,7 +309,8 @@ function waitForQRCodeLibrary(callback, maxAttempts = 10) {
         
         if (attempts >= maxAttempts) {
             console.error('QRCode library failed to load after', maxAttempts, 'attempts');
-            callback(false);
+            // Try to load manually as last resort
+            loadQRCodeLibraryManually(callback);
             return;
         }
         
@@ -285,6 +319,70 @@ function waitForQRCodeLibrary(callback, maxAttempts = 10) {
     };
     
     checkLibrary();
+}
+
+// Function to manually load QRCode library
+function loadQRCodeLibraryManually(callback) {
+    console.log('Attempting to load QRCode library manually...');
+    
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';
+    script.onload = function() {
+        console.log('QRCode library loaded manually successfully');
+        callback(true);
+    };
+    script.onerror = function() {
+        console.error('Failed to load QRCode library manually');
+        callback(false);
+    };
+    
+    document.head.appendChild(script);
+}
+
+// Function to retry QR code generation
+function retryQRCode() {
+    const qrContainer = document.getElementById('qrCodeContainer');
+    if (qrContainer) {
+        generateAndShowQRCode();
+    }
+}
+
+// Test function to debug basic functionality
+function testButton() {
+    console.log('Test button clicked - basic functionality working');
+    
+    // Test if we can access DOM elements
+    const qrContainer = document.getElementById('qrCodeContainer');
+    console.log('QR Container found:', qrContainer !== null);
+    
+    // Test if Bootstrap is available
+    console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
+    
+    // Test if QRCode library is available
+    console.log('QRCode library available:', typeof QRCode !== 'undefined');
+    
+    // Additional diagnostic information
+    console.log('QRCode load failed flag:', window.QRCodeLoadFailed);
+    console.log('Page URL:', window.location.href);
+    console.log('User Agent:', navigator.userAgent);
+    
+    // Check network status
+    if (navigator.onLine) {
+        console.log('Network: Online');
+    } else {
+        console.log('Network: Offline');
+    }
+    
+    // Show comprehensive status
+    let statusMessage = 'Estado del sistema:\n';
+    statusMessage += `• JavaScript básico: ✅ Funcionando\n`;
+    statusMessage += `• Contenedor QR: ${qrContainer !== null ? '✅ Encontrado' : '❌ No encontrado'}\n`;
+    statusMessage += `• Bootstrap: ${typeof bootstrap !== 'undefined' ? '✅ Disponible' : '❌ No disponible'}\n`;
+    statusMessage += `• Librería QR: ${typeof QRCode !== 'undefined' ? '✅ Cargada' : '❌ No cargada'}\n`;
+    statusMessage += `• Fallback flag: ${window.QRCodeLoadFailed ? '❌ Falló' : '✅ OK'}\n`;
+    statusMessage += `• Red: ${navigator.onLine ? '✅ En línea' : '❌ Sin conexión'}`;
+    
+    alert(statusMessage);
 }
 
 // Add event listener to check library when page loads
@@ -314,27 +412,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 3000);
 });
-
-// Function to retry QR code generation
-function retryQRCode() {
-    const qrContainer = document.getElementById('qrCodeContainer');
-    if (qrContainer) {
-        generateAndShowQRCode();
-    }
-}
-
-// Test function to debug basic functionality
-function testButton() {
-    console.log('Test button clicked - basic functionality working');
-    alert('Test button working! Basic JavaScript functionality is operational.');
-    
-    // Test if we can access DOM elements
-    const qrContainer = document.getElementById('qrCodeContainer');
-    console.log('QR Container found:', qrContainer !== null);
-    
-    // Test if Bootstrap is available
-    console.log('Bootstrap available:', typeof bootstrap !== 'undefined');
-    
-    // Test if QRCode library is available
-    console.log('QRCode library available:', typeof QRCode !== 'undefined');
-}
