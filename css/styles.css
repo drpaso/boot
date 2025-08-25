@@ -11079,3 +11079,55 @@ header.masthead h1, header.masthead .h1 {
 #portfolio .container-fluid .portfolio-box:hover .portfolio-box-caption, #portfolio .container-sm .portfolio-box:hover .portfolio-box-caption, #portfolio .container-md .portfolio-box:hover .portfolio-box-caption, #portfolio .container-lg .portfolio-box:hover .portfolio-box-caption, #portfolio .container-xl .portfolio-box:hover .portfolio-box-caption, #portfolio .container-xxl .portfolio-box:hover .portfolio-box-caption {
   opacity: 1;
 }
+
+/* vCard Styling */
+.vcard-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px solid #dee2e6 !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.vcard-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    border-color: var(--bs-primary) !important;
+}
+
+.vcard-container h5 {
+    color: var(--bs-primary);
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.vcard-container p {
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.vcard-container strong {
+    color: var(--bs-gray-700);
+    font-weight: 600;
+}
+
+.vcard-container .btn {
+    transition: all 0.3s ease;
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+}
+
+.vcard-container .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+    .vcard-container .row {
+        text-align: center;
+    }
+    
+    .vcard-container .btn {
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+}
