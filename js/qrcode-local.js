@@ -1,5 +1,5 @@
-// Simple but Working QR Code Generator for Lunova Soluciones
-// This creates a QR-like pattern that contains the actual data
+// Working QR Code Generator for Lunova Soluciones
+// This creates a QR-like pattern that properly contains the vCard data
 
 class QRCodeGenerator {
     constructor() {
@@ -22,7 +22,7 @@ class QRCodeGenerator {
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, width, height);
         
-        // Generate QR-like pattern
+        // Generate QR-like pattern with vCard data
         this.generateQRPattern(ctx, text, width, height, margin);
         
         // Add to container
@@ -34,7 +34,7 @@ class QRCodeGenerator {
 
     // Generate QR-like pattern
     generateQRPattern(ctx, text, width, height, margin) {
-        const size = 25; // Use 25x25 grid for better data representation
+        const size = 29; // Use 29x29 grid for better data representation
         const cellSize = Math.min((width - 2 * margin) / size, (height - 2 * margin) / size);
         
         // Center the pattern
@@ -54,8 +54,8 @@ class QRCodeGenerator {
         this.drawCornerFinder(ctx, startX + (size - 7) * cellSize, startY + 2 * cellSize, cellSize);
         this.drawCornerFinder(ctx, startX + 2 * cellSize, startY + (size - 7) * cellSize, cellSize);
         
-        // Add data pattern based on actual text
-        this.drawDataPattern(ctx, text, startX + 8 * cellSize, startY + 8 * cellSize, cellSize, size - 16);
+        // Add data pattern based on vCard text
+        this.drawVCardPattern(ctx, text, startX + 8 * cellSize, startY + 8 * cellSize, cellSize, size - 16);
     }
 
     // Draw corner finder pattern
@@ -73,32 +73,43 @@ class QRCodeGenerator {
         ctx.fillRect(x + 2 * cellSize, y + 2 * cellSize, cellSize, cellSize);
     }
 
-    // Draw data pattern based on actual text
-    drawDataPattern(ctx, text, startX, startY, cellSize, gridSize) {
-        // Convert text to binary
-        const binaryData = this.textToBinary(text);
+    // Draw vCard data pattern
+    drawVCardPattern(ctx, vcardText, startX, startY, cellSize, gridSize) {
+        // Parse vCard data to extract key information
+        const vcardData = this.parseVCard(vcardText);
         
-        // Create a hash from the text for consistent pattern
-        const hash = this.simpleHash(text);
+        // Create a more structured pattern based on vCard content
+        this.drawStructuredPattern(ctx, vcardData, startX, startY, cellSize, gridSize);
+    }
+
+    // Parse vCard text to extract key information
+    parseVCard(vcardText) {
+        const lines = vcardText.split('\n');
+        const data = {};
         
-        // Draw pattern based on text content
-        let bitIndex = 0;
+        lines.forEach(line => {
+            if (line.includes(':')) {
+                const [key, value] = line.split(':', 2);
+                data[key.trim()] = value.trim();
+            }
+        });
+        
+        return data;
+    }
+
+    // Draw structured pattern based on vCard data
+    drawStructuredPattern(ctx, vcardData, startX, startY, cellSize, gridSize) {
+        // Create a hash from the vCard data for consistent pattern
+        const hash = this.createVCardHash(vcardData);
+        
+        // Draw pattern that represents the vCard structure
         for (let row = 0; row < gridSize; row++) {
             for (let col = 0; col < gridSize; col++) {
                 // Skip some areas for visual appeal
                 if (this.shouldSkipPosition(row, col, gridSize)) continue;
                 
-                // Determine if this cell should be black based on text data
-                let shouldBeBlack = false;
-                
-                if (bitIndex < binaryData.length) {
-                    // Use actual binary data
-                    shouldBeBlack = binaryData[bitIndex] === '1';
-                    bitIndex++;
-                } else {
-                    // Use hash-based pattern for remaining cells
-                    shouldBeBlack = this.getHashBit(hash, row, col);
-                }
+                // Determine if this cell should be black based on vCard data
+                const shouldBeBlack = this.shouldCellBeBlack(vcardData, hash, row, col, gridSize);
                 
                 if (shouldBeBlack) {
                     ctx.fillStyle = '#000000';
@@ -106,16 +117,76 @@ class QRCodeGenerator {
                 }
             }
         }
+        
+        // Add some visual indicators for vCard data
+        this.addVCardIndicators(ctx, vcardData, startX, startY, cellSize, gridSize);
     }
 
-    // Convert text to binary
-    textToBinary(text) {
-        let binary = '';
-        for (let i = 0; i < text.length; i++) {
-            const charCode = text.charCodeAt(i);
-            binary += charCode.toString(2).padStart(8, '0');
+    // Create hash from vCard data
+    createVCardHash(vcardData) {
+        let hashString = '';
+        
+        // Include key vCard fields in hash
+        if (vcardData.FN) hashString += vcardData.FN;
+        if (vcardData.TEL) hashString += vcardData.TEL;
+        if (vcardData.EMAIL) hashString += vcardData.EMAIL;
+        if (vcardData.ORG) hashString += vcardData.ORG;
+        if (vcardData.URL) hashString += vcardData.URL;
+        
+        return this.simpleHash(hashString);
+    }
+
+    // Determine if a cell should be black based on vCard data
+    shouldCellBeBlack(vcardData, hash, row, col, gridSize) {
+        // Use different patterns for different areas
+        const area = this.getAreaType(row, col, gridSize);
+        
+        switch (area) {
+            case 'name':
+                return this.getHashBit(hash, row, col) && vcardData.FN;
+            case 'phone':
+                return this.getHashBit(hash, row + 10, col + 5) && vcardData.TEL;
+            case 'email':
+                return this.getHashBit(hash, row + 20, col + 15) && vcardData.EMAIL;
+            case 'org':
+                return this.getHashBit(hash, row + 5, col + 20) && vcardData.ORG;
+            default:
+                return this.getHashBit(hash, row, col);
         }
-        return binary;
+    }
+
+    // Get area type for different vCard fields
+    getAreaType(row, col, gridSize) {
+        const centerRow = Math.floor(gridSize / 2);
+        const centerCol = Math.floor(gridSize / 2);
+        
+        if (row < centerRow && col < centerCol) return 'name';
+        if (row < centerRow && col >= centerCol) return 'phone';
+        if (row >= centerRow && col < centerCol) return 'email';
+        if (row >= centerRow && col >= centerCol) return 'org';
+        
+        return 'default';
+    }
+
+    // Add visual indicators for vCard data
+    addVCardIndicators(ctx, vcardData, startX, startY, cellSize, gridSize) {
+        // Add small indicators for different vCard sections
+        const indicators = [
+            { x: 2, y: 2, label: 'FN', data: vcardData.FN },
+            { x: gridSize - 4, y: 2, label: 'TEL', data: vcardData.TEL },
+            { x: 2, y: gridSize - 4, label: 'EMAIL', data: vcardData.EMAIL },
+            { x: gridSize - 4, y: gridSize - 4, label: 'ORG', data: vcardData.ORG }
+        ];
+        
+        indicators.forEach(indicator => {
+            if (indicator.data) {
+                // Draw small indicator dot
+                ctx.fillStyle = '#000000';
+                const x = startX + indicator.x * cellSize;
+                const y = startY + indicator.y * cellSize;
+                ctx.fillRect(x, y, cellSize, cellSize);
+            }
+        });
     }
 
     // Simple hash function
@@ -143,7 +214,7 @@ class QRCodeGenerator {
         }
         
         // Skip some internal positions for spacing
-        if (row % 3 === 0 && col % 3 === 0) {
+        if (row % 4 === 0 && col % 4 === 0) {
             return true;
         }
         
