@@ -114,10 +114,13 @@ function addToContacts() {
 
 // QR Code functionality
 function showQRCode() {
+    console.log('=== QR CODE DEBUG START ===');
     console.log('showQRCode function called');
     console.log('QRCode library available:', typeof QRCode !== 'undefined');
     console.log('Bootstrap Modal available:', typeof bootstrap !== 'undefined');
     console.log('QRCode load failed flag:', window.QRCodeLoadFailed);
+    console.log('QRCode object:', QRCode);
+    console.log('=== QR CODE DEBUG END ===');
     
     const qrContainer = document.getElementById('qrCodeContainer');
     if (!qrContainer) {
@@ -176,6 +179,36 @@ function showQRCode() {
     }
 
     // Library is available, generate QR code
+    console.log('About to generate QR code...');
+    
+    // First, try a simple test QR code
+    try {
+        console.log('Testing simple QR code generation...');
+        const testContainer = document.createElement('div');
+        testContainer.id = 'testQR';
+        testContainer.style.width = '100px';
+        testContainer.style.height = '100px';
+        testContainer.style.border = '1px solid red';
+        
+        QRCode.toCanvas(testContainer, 'TEST', {
+            width: 100,
+            height: 100
+        }, function (error) {
+            if (error) {
+                console.error('Simple QR test failed:', error);
+            } else {
+                console.log('Simple QR test successful!');
+            }
+        });
+        
+        // Add test QR to page temporarily
+        document.body.appendChild(testContainer);
+        setTimeout(() => document.body.removeChild(testContainer), 3000);
+        
+    } catch (testError) {
+        console.error('Exception in simple QR test:', testError);
+    }
+    
     generateAndShowQRCode();
 }
 
@@ -383,6 +416,62 @@ function testButton() {
     statusMessage += `• Red: ${navigator.onLine ? '✅ En línea' : '❌ Sin conexión'}`;
     
     alert(statusMessage);
+}
+
+// Simple QR test function
+function testSimpleQR() {
+    console.log('=== SIMPLE QR TEST START ===');
+    
+    if (typeof QRCode === 'undefined') {
+        alert('QRCode library not available! Check console for details.');
+        console.error('QRCode library not available for simple test');
+        return;
+    }
+    
+    console.log('QRCode library available for simple test');
+    
+    // Create a simple test container
+    const testContainer = document.createElement('div');
+    testContainer.id = 'simpleQRTest';
+    testContainer.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border: 2px solid blue;
+        padding: 20px;
+        z-index: 9999;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    `;
+    
+    testContainer.innerHTML = '<h4>QR Test</h4><div id="qrTestArea"></div><button onclick="this.parentElement.remove()">Close</button>';
+    
+    document.body.appendChild(testContainer);
+    
+    const qrArea = document.getElementById('qrTestArea');
+    
+    try {
+        console.log('Attempting to generate simple QR code...');
+        QRCode.toCanvas(qrArea, 'LUNOVA TEST', {
+            width: 200,
+            height: 200,
+            margin: 2
+        }, function (error) {
+            if (error) {
+                console.error('Simple QR generation failed:', error);
+                qrArea.innerHTML = '<p style="color: red;">Error: ' + error.message + '</p>';
+            } else {
+                console.log('Simple QR generation successful!');
+                qrArea.innerHTML += '<p style="color: green;">QR Code generated successfully!</p>';
+            }
+        });
+    } catch (e) {
+        console.error('Exception in simple QR test:', e);
+        qrArea.innerHTML = '<p style="color: red;">Exception: ' + e.message + '</p>';
+    }
+    
+    console.log('=== SIMPLE QR TEST END ===');
 }
 
 // Add event listener to check library when page loads

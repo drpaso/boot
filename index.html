@@ -226,6 +226,9 @@
                                 <button class="btn btn-warning" onclick="testButton()">
                                     <i class="bi-bug me-2"></i>Test
                                 </button>
+                                <button class="btn btn-info" onclick="testSimpleQR()">
+                                    <i class="bi-qr-code me-2"></i>Test QR
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -318,6 +321,25 @@
                     window.QRCodeLoadFailed = false;
                 }
             }, 2000);
+            
+            // Additional check after 5 seconds
+            setTimeout(() => {
+                if (typeof QRCode === 'undefined') {
+                    console.error('QRCode library failed to load after 5 seconds - trying manual load');
+                    // Try to load manually
+                    const script = document.createElement('script');
+                    script.src = 'https://unpkg.com/qrcode@1.5.3/build/qrcode.min.js';
+                    script.onload = function() {
+                        console.log('Manual QRCode library load successful');
+                        window.QRCodeLoadFailed = false;
+                    };
+                    script.onerror = function() {
+                        console.error('Manual QRCode library load also failed');
+                        window.QRCodeLoadFailed = true;
+                    };
+                    document.head.appendChild(script);
+                }
+            }, 5000);
         </script>
         <!-- Core theme JS-->
         <script src="js/scripts.js"></script>
