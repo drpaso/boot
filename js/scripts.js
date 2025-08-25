@@ -157,23 +157,15 @@ END:VCARD`;
     qrContainer.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Generando...</span></div><p class="mt-2">Generando código QR...</p></div>'; // Show loading state
     
     try {
-        // Generate QR code
-        QRCode.toCanvas(qrContainer, vcardData, {
+        // Generate QR code using local library
+        const qr = new QRCode();
+        qr.toCanvas(qrContainer, vcardData, {
             width: 256,
             height: 256,
-            margin: 2,
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF'
-            }
-        }, function (error) {
-            if (error) {
-                console.error('Error generating QR code:', error);
-                qrContainer.innerHTML = '<p class="text-danger">Error generando el código QR. Por favor, intenta de nuevo.</p>';
-            } else {
-                console.log('QR code generated successfully');
-            }
+            margin: 2
         });
+        
+        console.log('QR code generated successfully');
         
         // Show the modal
         try {
@@ -215,32 +207,23 @@ ADR:;;El Paso;TX;;;USA
 END:VCARD`;
 
     try {
-        // Generate QR code as data URL
-        QRCode.toDataURL(vcardData, {
+        // Generate QR code as data URL using local library
+        const qr = new QRCode();
+        const dataUrl = qr.toDataURL(vcardData, {
             width: 512,
             height: 512,
-            margin: 2,
-            color: {
-                dark: '#000000',
-                light: '#FFFFFF'
-            }
-        }, function (error, url) {
-            if (error) {
-                console.error('Error generating QR code for download:', error);
-                alert('Error generando el código QR para descarga. Por favor, intenta de nuevo.');
-                return;
-            }
-            
-            console.log('QR code generated for download successfully');
-            
-            // Create download link
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'lunova-soluciones-qr.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            margin: 2
         });
+        
+        console.log('QR code generated for download successfully');
+        
+        // Create download link
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = 'lunova-soluciones-qr.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     } catch (error) {
         console.error('Exception in downloadQRCode:', error);
         alert('Error inesperado generando el código QR para descarga. Por favor, intenta de nuevo.');
@@ -254,50 +237,6 @@ function checkQRCodeLibrary() {
         return false;
     }
     return true;
-}
-
-// Function to wait for QRCode library to load
-function waitForQRCodeLibrary(callback, maxAttempts = 10) {
-    let attempts = 0;
-    
-    const checkLibrary = () => {
-        attempts++;
-        if (checkQRCodeLibrary()) {
-            console.log('QRCode library loaded successfully after', attempts, 'attempts');
-            callback(true);
-            return;
-        }
-        
-        if (attempts >= maxAttempts) {
-            console.error('QRCode library failed to load after', maxAttempts, 'attempts');
-            // Try to load manually as last resort
-            loadQRCodeLibraryManually(callback);
-            return;
-        }
-        
-        // Wait 500ms before next attempt
-        setTimeout(checkLibrary, 500);
-    };
-    
-    checkLibrary();
-}
-
-// Function to manually load QRCode library
-function loadQRCodeLibraryManually(callback) {
-    console.log('Attempting to load QRCode library manually...');
-    
-    const script = document.createElement('script');
-    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js';
-    script.onload = function() {
-        console.log('QRCode library loaded manually successfully');
-        callback(true);
-    };
-    script.onerror = function() {
-        console.error('Failed to load QRCode library manually');
-        callback(false);
-    };
-    
-    document.head.appendChild(script);
 }
 
 // Function to retry QR code generation
@@ -323,7 +262,6 @@ function testButton() {
     console.log('QRCode library available:', typeof QRCode !== 'undefined');
     
     // Additional diagnostic information
-    console.log('QRCode load failed flag:', window.QRCodeLoadFailed);
     console.log('Page URL:', window.location.href);
     console.log('User Agent:', navigator.userAgent);
     
@@ -340,7 +278,6 @@ function testButton() {
     statusMessage += `• Contenedor QR: ${qrContainer !== null ? '✅ Encontrado' : '❌ No encontrado'}\n`;
     statusMessage += `• Bootstrap: ${typeof bootstrap !== 'undefined' ? '✅ Disponible' : '❌ No disponible'}\n`;
     statusMessage += `• Librería QR: ${typeof QRCode !== 'undefined' ? '✅ Cargada' : '❌ No cargada'}\n`;
-    statusMessage += `• Fallback flag: ${window.QRCodeLoadFailed ? '❌ Falló' : '✅ OK'}\n`;
     statusMessage += `• Red: ${navigator.onLine ? '✅ En línea' : '❌ Sin conexión'}`;
     
     alert(statusMessage);
@@ -411,18 +348,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (checkQRCodeLibrary()) {
             console.log('QRCode library loaded successfully');
         } else {
-            console.warn('QRCode library not loaded immediately, will retry...');
+            console.warn('QRCode library not loaded - this should not happen with local library');
         }
     }, 1000);
-    
-    // Additional check after 3 seconds
-    setTimeout(() => {
-        console.log('Final QRCode library check...');
-        if (checkQRCodeLibrary()) {
-            console.log('QRCode library loaded successfully (final check)');
-        } else {
-            console.error('QRCode library failed to load after 3 seconds');
-            console.log('Available global objects:', Object.keys(window).filter(key => key.includes('QR') || key.includes('qrcode')));
-        }
-    }, 3000);
 });
