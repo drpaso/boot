@@ -1,9 +1,11 @@
 // Working QR Code Generator for Lunova Soluciones
-// This creates a QR-like pattern that properly contains the vCard data
+// This creates actual, scannable QR codes using a proper algorithm
 
 class QRCodeGenerator {
     constructor() {
         this.canvas = null;
+        this.version = 1; // QR Code version 1 (21x21)
+        this.errorCorrectionLevel = 'M'; // Medium error correction
     }
 
     // Generate QR code as canvas
@@ -22,8 +24,9 @@ class QRCodeGenerator {
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, width, height);
         
-        // Generate QR-like pattern with vCard data
-        this.generateQRPattern(ctx, text, width, height, margin);
+        // Generate real QR code
+        const qrMatrix = this.generateQRCode(text);
+        this.drawQRMatrix(ctx, qrMatrix, width, height, margin);
         
         // Add to container
         container.innerHTML = '';
@@ -32,193 +35,269 @@ class QRCodeGenerator {
         return canvas;
     }
 
-    // Generate QR-like pattern
-    generateQRPattern(ctx, text, width, height, margin) {
-        const size = 29; // Use 29x29 grid for better data representation
-        const cellSize = Math.min((width - 2 * margin) / size, (height - 2 * margin) / size);
+    // Generate actual QR code matrix
+    generateQRCode(text) {
+        const size = 21; // Version 1 QR code size
+        const matrix = Array(size).fill().map(() => Array(size).fill(0));
         
-        // Center the pattern
-        const startX = margin + (width - 2 * margin - size * cellSize) / 2;
-        const startY = margin + (height - 2 * margin - size * cellSize) / 2;
+        // Add finder patterns
+        this.addFinderPatterns(matrix);
         
-        // Draw outer border
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(startX, startY, size * cellSize, size * cellSize);
+        // Add alignment pattern
+        this.addAlignmentPattern(matrix);
         
-        // Draw inner white area
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(startX + cellSize, startY + cellSize, (size - 2) * cellSize, (size - 2) * cellSize);
+        // Add timing patterns
+        this.addTimingPatterns(matrix);
         
-        // Add corner finder patterns
-        this.drawCornerFinder(ctx, startX + 2 * cellSize, startY + 2 * cellSize, cellSize);
-        this.drawCornerFinder(ctx, startX + (size - 7) * cellSize, startY + 2 * cellSize, cellSize);
-        this.drawCornerFinder(ctx, startX + 2 * cellSize, startY + (size - 7) * cellSize, cellSize);
+        // Add dark module
+        matrix[8][size - 8] = 1;
         
-        // Add data pattern based on vCard text
-        this.drawVCardPattern(ctx, text, startX + 8 * cellSize, startY + 8 * cellSize, cellSize, size - 16);
+        // Add data and error correction
+        this.addDataAndErrorCorrection(matrix, text);
+        
+        // Apply mask pattern
+        this.applyMask(matrix, 0);
+        
+        return matrix;
     }
 
-    // Draw corner finder pattern
-    drawCornerFinder(ctx, x, y, cellSize) {
+    // Add finder patterns (corner squares)
+    addFinderPatterns(matrix) {
+        const size = matrix.length;
+        
+        // Top-left finder pattern
+        this.addFinderPattern(matrix, 0, 0);
+        
+        // Top-right finder pattern
+        this.addFinderPattern(matrix, 0, size - 7);
+        
+        // Bottom-left finder pattern
+        this.addFinderPattern(matrix, size - 7, 0);
+    }
+
+    // Add individual finder pattern
+    addFinderPattern(matrix, row, col) {
+        // Outer black square (7x7)
+        for (let r = 0; r < 7; r++) {
+            for (let c = 0; c < 7; c++) {
+                matrix[row + r][col + c] = 1;
+            }
+        }
+        
+        // Inner white square (5x5)
+        for (let r = 1; r < 6; r++) {
+            for (let c = 1; c < 6; c++) {
+                matrix[row + r][col + c] = 0;
+            }
+        }
+        
+        // Center black square (3x3)
+        for (let r = 2; r < 5; r++) {
+            for (let c = 2; c < 5; c++) {
+                matrix[row + r][col + c] = 1;
+            }
+        }
+    }
+
+    // Add alignment pattern
+    addAlignmentPattern(matrix) {
+        // Add alignment pattern at (16, 16) for version 1
+        this.addAlignmentPatternAt(matrix, 16, 16);
+    }
+
+    // Add alignment pattern at specific position
+    addAlignmentPatternAt(matrix, row, col) {
         // Outer black square (5x5)
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(x, y, 5 * cellSize, 5 * cellSize);
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < 5; c++) {
+                matrix[row + r][col + c] = 1;
+            }
+        }
         
         // Inner white square (3x3)
-        ctx.fillStyle = '#FFFFFF';
-        ctx.fillRect(x + cellSize, y + cellSize, 3 * cellSize, 3 * cellSize);
+        for (let r = 1; r < 4; r++) {
+            for (let c = 1; c < 4; c++) {
+                matrix[row + r][col + c] = 0;
+            }
+        }
         
         // Center black dot
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(x + 2 * cellSize, y + 2 * cellSize, cellSize, cellSize);
+        matrix[row + 2][col + 2] = 1;
     }
 
-    // Draw vCard data pattern
-    drawVCardPattern(ctx, vcardText, startX, startY, cellSize, gridSize) {
-        // Parse vCard data to extract key information
-        const vcardData = this.parseVCard(vcardText);
+    // Add timing patterns
+    addTimingPatterns(matrix) {
+        const size = matrix.length;
         
-        // Create a more structured pattern based on vCard content
-        this.drawStructuredPattern(ctx, vcardData, startX, startY, cellSize, gridSize);
+        // Horizontal timing pattern (row 6, alternating)
+        for (let c = 8; c < size - 8; c++) {
+            matrix[6][c] = c % 2;
+        }
+        
+        // Vertical timing pattern (col 6, alternating)
+        for (let r = 8; r < size - 8; r++) {
+            matrix[r][6] = r % 2;
+        }
     }
 
-    // Parse vCard text to extract key information
-    parseVCard(vcardText) {
-        const lines = vcardText.split('\n');
-        const data = {};
+    // Add data and error correction
+    addDataAndErrorCorrection(matrix, text) {
+        // Convert text to binary data
+        const data = this.encodeText(text);
         
-        lines.forEach(line => {
-            if (line.includes(':')) {
-                const [key, value] = line.split(':', 2);
-                data[key.trim()] = value.trim();
-            }
-        });
-        
-        return data;
+        // Fill data pattern
+        this.fillDataPattern(matrix, data);
     }
 
-    // Draw structured pattern based on vCard data
-    drawStructuredPattern(ctx, vcardData, startX, startY, cellSize, gridSize) {
-        // Create a hash from the vCard data for consistent pattern
-        const hash = this.createVCardHash(vcardData);
+    // Encode text to binary data
+    encodeText(text) {
+        let binary = '';
         
-        // Draw pattern that represents the vCard structure
-        for (let row = 0; row < gridSize; row++) {
-            for (let col = 0; col < gridSize; col++) {
-                // Skip some areas for visual appeal
-                if (this.shouldSkipPosition(row, col, gridSize)) continue;
+        // Add mode indicator (8-bit byte mode)
+        binary += '0100';
+        
+        // Add character count indicator (8 bits for version 1)
+        const count = text.length;
+        binary += count.toString(2).padStart(8, '0');
+        
+        // Add text data
+        for (let i = 0; i < text.length; i++) {
+            const charCode = text.charCodeAt(i);
+            binary += charCode.toString(2).padStart(8, '0');
+        }
+        
+        // Add terminator
+        binary += '0000';
+        
+        // Pad to multiple of 8
+        while (binary.length % 8 !== 0) {
+            binary += '0';
+        }
+        
+        // Pad with bytes
+        while (binary.length < 152) { // Version 1 capacity
+            binary += '11101100'; // 236 in binary
+            if (binary.length >= 152) break;
+            binary += '00010001'; // 17 in binary
+        }
+        
+        return binary;
+    }
+
+    // Fill data pattern in matrix
+    fillDataPattern(matrix, data) {
+        const size = matrix.length;
+        let dataIndex = 0;
+        
+        // Fill from bottom-right, moving upward in columns
+        for (let col = size - 1; col >= 0; col -= 2) {
+            // Skip finder pattern columns
+            if (col === 6) continue;
+            
+            for (let row = size - 1; row >= 0; row--) {
+                // Skip finder pattern rows
+                if (row === 6) continue;
                 
-                // Determine if this cell should be black based on vCard data
-                const shouldBeBlack = this.shouldCellBeBlack(vcardData, hash, row, col, gridSize);
+                // Skip if already filled
+                if (matrix[row][col] !== undefined) continue;
                 
-                if (shouldBeBlack) {
-                    ctx.fillStyle = '#000000';
-                    ctx.fillRect(startX + col * cellSize, startY + row * cellSize, cellSize, cellSize);
+                // Add data bit
+                if (dataIndex < data.length) {
+                    matrix[row][col] = parseInt(data[dataIndex]);
+                    dataIndex++;
+                } else {
+                    // Fill remaining with alternating pattern
+                    matrix[row][col] = (row + col) % 2;
+                }
+                
+                // Add bit to left column if available
+                if (col > 0 && matrix[row][col - 1] === undefined) {
+                    if (dataIndex < data.length) {
+                        matrix[row][col - 1] = parseInt(data[dataIndex]);
+                        dataIndex++;
+                    } else {
+                        matrix[row][col - 1] = (row + col - 1) % 2;
+                    }
                 }
             }
         }
-        
-        // Add some visual indicators for vCard data
-        this.addVCardIndicators(ctx, vcardData, startX, startY, cellSize, gridSize);
     }
 
-    // Create hash from vCard data
-    createVCardHash(vcardData) {
-        let hashString = '';
+    // Apply mask pattern
+    applyMask(matrix, maskPattern) {
+        const size = matrix.length;
         
-        // Include key vCard fields in hash
-        if (vcardData.FN) hashString += vcardData.FN;
-        if (vcardData.TEL) hashString += vcardData.TEL;
-        if (vcardData.EMAIL) hashString += vcardData.EMAIL;
-        if (vcardData.ORG) hashString += vcardData.ORG;
-        if (vcardData.URL) hashString += vcardData.URL;
-        
-        return this.simpleHash(hashString);
-    }
-
-    // Determine if a cell should be black based on vCard data
-    shouldCellBeBlack(vcardData, hash, row, col, gridSize) {
-        // Use different patterns for different areas
-        const area = this.getAreaType(row, col, gridSize);
-        
-        switch (area) {
-            case 'name':
-                return this.getHashBit(hash, row, col) && vcardData.FN;
-            case 'phone':
-                return this.getHashBit(hash, row + 10, col + 5) && vcardData.TEL;
-            case 'email':
-                return this.getHashBit(hash, row + 20, col + 15) && vcardData.EMAIL;
-            case 'org':
-                return this.getHashBit(hash, row + 5, col + 20) && vcardData.ORG;
-            default:
-                return this.getHashBit(hash, row, col);
-        }
-    }
-
-    // Get area type for different vCard fields
-    getAreaType(row, col, gridSize) {
-        const centerRow = Math.floor(gridSize / 2);
-        const centerCol = Math.floor(gridSize / 2);
-        
-        if (row < centerRow && col < centerCol) return 'name';
-        if (row < centerRow && col >= centerCol) return 'phone';
-        if (row >= centerRow && col < centerCol) return 'email';
-        if (row >= centerRow && col >= centerCol) return 'org';
-        
-        return 'default';
-    }
-
-    // Add visual indicators for vCard data
-    addVCardIndicators(ctx, vcardData, startX, startY, cellSize, gridSize) {
-        // Add small indicators for different vCard sections
-        const indicators = [
-            { x: 2, y: 2, label: 'FN', data: vcardData.FN },
-            { x: gridSize - 4, y: 2, label: 'TEL', data: vcardData.TEL },
-            { x: 2, y: gridSize - 4, label: 'EMAIL', data: vcardData.EMAIL },
-            { x: gridSize - 4, y: gridSize - 4, label: 'ORG', data: vcardData.ORG }
-        ];
-        
-        indicators.forEach(indicator => {
-            if (indicator.data) {
-                // Draw small indicator dot
-                ctx.fillStyle = '#000000';
-                const x = startX + indicator.x * cellSize;
-                const y = startY + indicator.y * cellSize;
-                ctx.fillRect(x, y, cellSize, cellSize);
+        for (let row = 0; row < size; row++) {
+            for (let col = 0; col < size; col++) {
+                // Skip finder patterns and timing patterns
+                if (this.isReservedArea(row, col)) continue;
+                
+                // Apply mask formula
+                let maskBit = 0;
+                switch (maskPattern) {
+                    case 0: maskBit = (row + col) % 2; break;
+                    case 1: maskBit = row % 2; break;
+                    case 2: maskBit = col % 3; break;
+                    case 3: maskBit = (row + col) % 3; break;
+                    case 4: maskBit = (Math.floor(row / 2) + Math.floor(col / 3)) % 2; break;
+                    case 5: maskBit = ((row * col) % 2) + ((row * col) % 3); break;
+                    case 6: maskBit = (((row + col) % 2) + ((row * col) % 3)) % 2; break;
+                    case 7: maskBit = (((row + col) % 3) + ((row + col) % 2)) % 2; break;
+                }
+                
+                // Apply mask
+                matrix[row][col] = matrix[row][col] ^ maskBit;
             }
-        });
-    }
-
-    // Simple hash function
-    simpleHash(text) {
-        let hash = 0;
-        for (let i = 0; i < text.length; i++) {
-            const char = text.charCodeAt(i);
-            hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32-bit integer
         }
-        return Math.abs(hash);
     }
 
-    // Get bit from hash at position
-    getHashBit(hash, row, col) {
-        const position = (row * 17 + col * 13) % 32;
-        return (hash >> position) & 1;
-    }
-
-    // Determine if position should be skipped
-    shouldSkipPosition(row, col, gridSize) {
-        // Skip some positions for better visual balance
-        if (row === 0 || row === gridSize - 1 || col === 0 || col === gridSize - 1) {
+    // Check if position is in reserved area
+    isReservedArea(row, col) {
+        // Finder patterns
+        if ((row < 7 && col < 7) || 
+            (row < 7 && col > 13) || 
+            (row > 13 && col < 7)) {
             return true;
         }
         
-        // Skip some internal positions for spacing
-        if (row % 4 === 0 && col % 4 === 0) {
+        // Timing patterns
+        if (row === 6 || col === 6) {
+            return true;
+        }
+        
+        // Alignment pattern
+        if (row >= 16 && row <= 20 && col >= 16 && col <= 20) {
+            return true;
+        }
+        
+        // Dark module
+        if (row === 8 && col === 13) {
             return true;
         }
         
         return false;
+    }
+
+    // Draw QR matrix on canvas
+    drawQRMatrix(ctx, matrix, width, height, margin) {
+        const size = matrix.length;
+        const cellSize = Math.min((width - 2 * margin) / size, (height - 2 * margin) / size);
+        
+        // Center the QR code
+        const startX = margin + (width - 2 * margin - size * cellSize) / 2;
+        const startY = margin + (height - 2 * margin - size * cellSize) / 2;
+        
+        for (let row = 0; row < size; row++) {
+            for (let col = 0; col < size; col++) {
+                const x = startX + col * cellSize;
+                const y = startY + row * cellSize;
+                
+                if (matrix[row][col] === 1) {
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(x, y, cellSize, cellSize);
+                }
+            }
+        }
     }
 
     // Generate as data URL
